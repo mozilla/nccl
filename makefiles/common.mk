@@ -15,8 +15,7 @@ PROFAPI ?= 0
 NVCC = $(CUDA_HOME)/bin/nvcc
 
 CUDA_LIB ?= $(CUDA_HOME)/lib64
-CUDA_INC ?= $(CUDA_HOME)/include
-CUDA_VERSION = $(strip $(shell $(NVCC) --version | grep release | sed 's/.*release //' | sed 's/\,.*//'))
+CUDA_VERSION = $(strip $(shell which $(NVCC) >/dev/null && $(NVCC) --version | grep release | sed 's/.*release //' | sed 's/\,.*//'))
 #CUDA_VERSION ?= $(shell ls $(CUDA_LIB)/libcudart.so.* | head -1 | rev | cut -d "." -f -2 | rev)
 CUDA_MAJOR = $(shell echo $(CUDA_VERSION) | cut -d "." -f 1)
 CUDA_MINOR = $(shell echo $(CUDA_VERSION) | cut -d "." -f 2)
@@ -36,7 +35,7 @@ CUDA8_PTX     = -gencode=arch=compute_61,code=compute_61
 CUDA9_PTX     = -gencode=arch=compute_70,code=compute_70
 
 # Include Volta support if we're using CUDA9 or above
-ifeq ($(shell test "$(CUDA_MAJOR)" -gt 8; echo $$?),0)
+ifeq ($(shell test "0$(CUDA_MAJOR)" -gt 8; echo $$?),0)
   NVCC_GENCODE ?= $(CUDA8_GENCODE) $(CUDA9_GENCODE) $(CUDA9_PTX)
 else
   NVCC_GENCODE ?= $(CUDA8_GENCODE) $(CUDA8_PTX)
