@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
+# Copyright (c) 2015-2019, NVIDIA CORPORATION. All rights reserved.
 #
 # See LICENSE.txt for license information
 #
@@ -15,6 +15,7 @@ PROFAPI ?= 0
 NVCC = $(CUDA_HOME)/bin/nvcc
 
 CUDA_LIB ?= $(CUDA_HOME)/lib64
+CUDA_INC ?= $(CUDA_HOME)/include
 CUDA_VERSION = $(strip $(shell which $(NVCC) >/dev/null && $(NVCC) --version | grep release | sed 's/.*release //' | sed 's/\,.*//'))
 #CUDA_VERSION ?= $(shell ls $(CUDA_LIB)/libcudart.so.* | head -1 | rev | cut -d "." -f -2 | rev)
 CUDA_MAJOR = $(shell echo $(CUDA_VERSION) | cut -d "." -f 1)
@@ -24,8 +25,7 @@ CUDA_MINOR = $(shell echo $(CUDA_VERSION) | cut -d "." -f 2)
 
 # Better define NVCC_GENCODE in your environment to the minimal set
 # of archs to reduce compile time.
-CUDA8_GENCODE = -gencode=arch=compute_30,code=sm_30 \
-                -gencode=arch=compute_35,code=sm_35 \
+CUDA8_GENCODE = -gencode=arch=compute_35,code=sm_35 \
                 -gencode=arch=compute_50,code=sm_50 \
                 -gencode=arch=compute_60,code=sm_60 \
                 -gencode=arch=compute_61,code=sm_61
@@ -42,9 +42,13 @@ else
 endif
 #$(info NVCC_GENCODE is ${NVCC_GENCODE})
 
-CXXFLAGS   := -I$(CUDA_INC) -DCUDA_MAJOR=$(CUDA_MAJOR) -DCUDA_MINOR=$(CUDA_MINOR) -fPIC -fvisibility=hidden
-CXXFLAGS   += -Wall -Wno-sign-compare -Wno-unused-function
-NVCUFLAGS  := -ccbin $(CXX) $(NVCC_GENCODE) -lineinfo -std=c++11 -Xptxas -maxrregcount=96 -Xfatbin -compress-all
+CXXFLAGS   := -DCUDA_MAJOR=$(CUDA_MAJOR) -DCUDA_MINOR=$(CUDA_MINOR) -fPIC -fvisibility=hidden
+CXXFLAGS   += -Wall -Wno-unused-function -Wno-sign-compare -std=c++11 -Wvla
+CXXFLAGS   += -I $(CUDA_INC)
+# Maxrregcount needs to be set accordingly to NCCL_MAX_NTHREADS (otherwise it will cause kernel launch errors)
+# 512 : 120, 640 : 96, 768 : 80, 1024 : 60
+# We would not have to set this if we used __launch_bounds__, but this only works on kernels, not on functions.
+NVCUFLAGS  := -ccbin $(CXX) $(NVCC_GENCODE) -std=c++11 -Xptxas -maxrregcount=96 -Xfatbin -compress-all
 # Use addprefix so that we can specify more than one path
 NVLDFLAGS  := -L${CUDA_LIB} -lcudart -lrt
 
@@ -67,7 +71,7 @@ CXXFLAGS  += -O0 -g -ggdb3
 endif
 
 ifneq ($(VERBOSE), 0)
-NVCUFLAGS += -Xptxas -v -Xcompiler -Wall,-Wextra
+NVCUFLAGS += -Xptxas -v -Xcompiler -Wall,-Wextra,-Wno-unused-parameter
 CXXFLAGS  += -Wall -Wextra
 else
 .SILENT:

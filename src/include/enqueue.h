@@ -1,5 +1,5 @@
 /*************************************************************************
- * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * See LICENSE.txt for license information
  ************************************************************************/
@@ -7,8 +7,9 @@
 #ifndef NCCL_ENQUEUE_H_
 #define NCCL_ENQUEUE_H_
 
-#include "core.h"
+#include "comm.h"
 #include "group.h"
+#include "collectives.h"
 
 ncclResult_t ncclEnqueueCheck(struct ncclInfo* info);
 ncclResult_t ncclCpuBarrierIn(ncclComm_t comm, int* isLast);

@@ -55,7 +55,7 @@ To install NCCL on the system, create a package then install it as root.
 Debian/Ubuntu :
 ```shell
 $ # Install tools to create debian packages
-$ sudo apt install build-essential devscripts debhelper
+$ sudo apt install build-essential devscripts debhelper fakeroot
 $ # Build NCCL deb package
 $ make pkg.debian.build
 $ ls build/pkg/deb/
@@ -89,4 +89,4 @@ $ ./build/all_reduce_perf -b 8 -e 256M -f 2 -g <ngpus>
 
 ## Copyright
 
-All source code and accompanying documentation is copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
+All source code and accompanying documentation is copyright (c) 2015-2019, NVIDIA CORPORATION. All rights reserved.
